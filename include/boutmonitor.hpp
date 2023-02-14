@@ -5,6 +5,7 @@
 #include<QByteArray>
 #include <QtQml/qqmlregistration.h>
 #include<nodeConnection.hpp>
+#include<QTimer>
 
 /*
  *@ Monitors the basic outputs.
@@ -22,7 +23,8 @@ class BoutMonitor : public QObject
     QML_ELEMENT
 public:
     BoutMonitor();
-    Q_INVOKABLE void startMonitor(void);
+    Q_INVOKABLE void restMonitor(void);
+    Q_INVOKABLE void eventMonitor(void);
     QString sender(void)const;
     QString addr(void)const;
     QString tag(void)const;
@@ -40,17 +42,17 @@ signals:
     void ready(void);
     void senderChanged(void);
     void addrChanged(void);
-    void restarted(void);
     void gotNewBout(qiota::Node_output out);
     void tagChanged();
 
 private:
     void checkOutput(const qiota::Node_output out);
+    void recheck(void);
 
 
     static Node_Conection* connection_;
     QByteArray sender_,addr_;
     qiota::qblocks::tagF tag_;
     QString hrp_;
-
+    QTimer  monitorTimer;
 };

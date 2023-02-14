@@ -44,13 +44,31 @@ void BoutMonitor::checkOutput(const qiota::Node_output out)
     }
 
 }
-
-void BoutMonitor::startMonitor(void)
+void BoutMonitor::eventMonitor(void)
 {
-    emit restarted();
+
+    auto resp=connection_->mqtt_client->
+            get_outputs_unlock_condition_address("address/"+addr());
+    connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
+        const auto node_output=Node_output(data);
+        checkOutput(node_output);
+    });
+    auto resp2=connection_->mqtt_client->
+            get_outputs_unlock_condition_address("address/"+addr_+"/spent");
+    connect(resp2,&ResponseMqtt::returned,this,[=](QJsonValue data){
+        const auto node_output=Node_output(data);
+        checkOutput(node_output);
+    });
+
+}
+void BoutMonitor::recheck(void)
+{
+    static qint64 cday=0;
+
     auto node_outputs_=new Node_outputs();
     auto strfilter=((sender_.isNull())?"":"sender="+sender()+"&")+
-            ((addr_.isNull())?"":"address="+addr()+"&") +((tag_.isNull())?"":"tag="+tag_.toHexString());
+            ((addr_.isNull())?"":"address="+addr()+"&") +((tag_.isNull())?"":"tag="+tag_.toHexString() + "&createdAfter="
+                                                                          +QString::number(cday));
     qDebug()<<"strfilter:"<<strfilter;
     connection_->rest_client->get_basic_outputs(node_outputs_,strfilter);
 
@@ -61,25 +79,13 @@ void BoutMonitor::startMonitor(void)
         }
         node_outputs_->deleteLater();
 
-        if(sender_.isNull()&&tag_.isNull())
-        {
-            auto resp=connection_->mqtt_client->
-                    get_outputs_unlock_condition_address("address/"+addr());
-            connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
-                const auto node_output=Node_output(data);
-                checkOutput(node_output);
-            });
-            auto resp2=connection_->mqtt_client->
-                    get_outputs_unlock_condition_address("address/"+addr_+"/spent");
-            connect(resp2,&ResponseMqtt::returned,this,[=](QJsonValue data){
-                const auto node_output=Node_output(data);
-                checkOutput(node_output);
-            });
-        }
-
     });
-
-
+    cday=QDateTime::currentSecsSinceEpoch();
+}
+void BoutMonitor::restMonitor(void)
+{
+    connect(&monitorTimer,&QTimer::timeout,this,&BoutMonitor::recheck);
+    monitorTimer.start(15000);
 }
 void BoutMonitor::set_sender(const QString addr)
 {
