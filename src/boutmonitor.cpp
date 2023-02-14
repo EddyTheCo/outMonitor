@@ -37,7 +37,6 @@ void BoutMonitor::checkOutput(const qiota::Node_output out)
      *
      */
 
-
     if(out.output()->type_m==qblocks::Output::Basic_typ)
     {
         emit gotNewBout(out);
@@ -76,6 +75,14 @@ void BoutMonitor::recheck(void)
         for(const auto& v:node_outputs_->outs_)
         {
             checkOutput(v);
+            auto resp=connection_->mqtt_client->get_outputs_outputId(v.metadata().outputid_.toHexString());
+
+                    QObject::connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data)
+                    {
+                        const auto node_outputs_=Node_output(data);
+                        emit outputChanged(node_outputs_);
+                        resp->deleteLater();
+                    });
         }
         node_outputs_->deleteLater();
 

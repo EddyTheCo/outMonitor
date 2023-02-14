@@ -43,6 +43,7 @@ signals:
     void senderChanged(void);
     void addrChanged(void);
     void gotNewBout(qiota::Node_output out);
+    void outputChanged(qiota::Node_output out);
     void tagChanged();
 
 private:
