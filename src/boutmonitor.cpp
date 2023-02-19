@@ -75,13 +75,14 @@ void BoutMonitor::recheck(void)
         for(const auto& v:node_outputs_->outs_)
         {
             checkOutput(v);
+
             auto resp=connection_->mqtt_client->get_outputs_outputId(v.metadata().outputid_.toHexString());
 
                     QObject::connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data)
                     {
                         const auto node_outputs_=Node_output(data);
                         emit outputChanged(node_outputs_);
-                        resp->deleteLater();
+                        if(node_outputs_.metadata().is_spent_)resp->deleteLater();
                     });
         }
         node_outputs_->deleteLater();
@@ -91,6 +92,7 @@ void BoutMonitor::recheck(void)
 }
 void BoutMonitor::restMonitor(void)
 {
+    recheck();
     connect(&monitorTimer,&QTimer::timeout,this,&BoutMonitor::recheck);
     monitorTimer.start(15000);
 }
