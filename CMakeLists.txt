@@ -14,7 +14,7 @@ qt6_add_qml_module(bout_monitor
     QML_FILES
     qml/window.qml
     RESOURCE_PREFIX
-   "/esthervtech.com/imports"	 
+   "/esterVtech.com/imports"
     OUTPUT_TARGETS out_targets_var
     NO_IMPORT_SCAN
     IMPORTS nodeConection
