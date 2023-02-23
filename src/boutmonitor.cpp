@@ -68,7 +68,7 @@ void BoutMonitor::recheck(void)
     auto strfilter=((sender_.isNull())?"":"sender="+sender()+"&")+
             ((addr_.isNull())?"":"address="+addr()+"&") +((tag_.isNull())?"":"tag="+tag_.toHexString() + "&createdAfter="
                                                                           +QString::number(cday));
-    qDebug()<<"strfilter:"<<strfilter;
+
     connection_->rest_client->get_basic_outputs(node_outputs_,strfilter);
 
     QObject::connect(node_outputs_,&Node_outputs::finished,this,[=]( ){
