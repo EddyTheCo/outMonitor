@@ -11,8 +11,6 @@ qt6_add_qml_module(bout_monitor
     VERSION 1.0
     SOURCES
     src/boutmonitor.cpp include/boutmonitor.hpp
-    QML_FILES
-    qml/window.qml
     RESOURCE_PREFIX
    "/esterVtech.com/imports"
     OUTPUT_TARGETS out_targets_var

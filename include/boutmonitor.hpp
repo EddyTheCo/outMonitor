@@ -19,7 +19,7 @@ class BoutMonitor : public QObject
     Q_PROPERTY(QString  issuer READ issuer WRITE set_issuer NOTIFY issuerChanged)
     Q_PROPERTY(QString  addr READ addr WRITE set_addr NOTIFY addrChanged)
     Q_PROPERTY(QString  tag READ tag WRITE set_tag NOTIFY tagChanged)
-    Q_PROPERTY(quint32  rpeat READ rpeat WRITE set_rpeat NOTIFY rpeatChanged)
+    Q_PROPERTY(unsigned int  rpeat READ rpeat WRITE set_rpeat NOTIFY rpeatChanged)
     Q_PROPERTY(QDateTime  createdAfter READ createdAfter WRITE set_createdAfter NOTIFY createdAfterChanged)
     Q_PROPERTY(OutTypes  outtypes READ outtypes WRITE set_outtypes NOTIFY outtypesChanged)
 
@@ -41,7 +41,7 @@ public:
     OutTypes outtypes(void)const{return outtypes_;}
     void set_outtypes(OutTypes sel){if(sel!=outtypes_){outtypes_=sel;emit outtypesChanged();}}
 
-    quint32 rpeat()const{return rpeat_;}
+    unsigned int rpeat()const{return rpeat_;}
     void set_rpeat(quint32 rpeat_m){if(rpeat_!=rpeat_m){rpeat_=rpeat_m;emit rpeatChanged();}}
     QString sender(void)const;
     QString issuer(void)const;
@@ -80,7 +80,7 @@ private:
     qiota::qblocks::tagF tag_;
     QTimer  monitorTimer;
     OutTypes outtypes_;
-    quint32 rpeat_;
+    unsigned int rpeat_;
     QObject * reciever;
     QDateTime createdAfter_;
 };
