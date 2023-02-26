@@ -5,65 +5,89 @@
 
 using namespace qiota;
 
-Node_Conection* BoutMonitor::connection_=nullptr;
-
-BoutMonitor::BoutMonitor():outtypes_(Basic),rpeat_(0)
+BoutMonitor::BoutMonitor(QObject *parent):outtypes_(Basic),rpeat_(0),
+    reciever(new QObject(this))
 {
-
+    this->setParent(parent);
 }
 
 void BoutMonitor::eventMonitor(QString condition)
 {
-    auto info=connection_->rest_client->get_api_core_v2_info();
-    QObject::connect(info,&Node_info::finished,this,[=]( ){
 
-        auto resp=connection_->mqtt_client->
-                get_outputs_unlock_condition_address(condition+"/"+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_));
-        connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data){
-            const auto node_output=Node_output(data);
-            if((int)node_output.output()->type_m==(int)outtypes_)
-            {
-                emit gotNewBout(node_output);
-                folloup(node_output.metadata().outputid_.toHexString());
-            }
+    if(Node_Conection::rest_client->Connected)
+    {
+        auto info=Node_Conection::rest_client->get_api_core_v2_info();
+        QObject::connect(info,&Node_info::finished,this,[=]( ){
 
+            auto resp=Node_Conection::mqtt_client->
+                    get_outputs_unlock_condition_address(condition+"/"+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_));
+            connect(resp,&ResponseMqtt::returned,reciever,[=](QJsonValue data){
+                const auto node_output=Node_output(data);
+                if((int)node_output.output()->type_m==(int)outtypes_)
+                {
+                    emit gotNewBout(node_output);
+                    folloup(node_output.metadata().outputid_.toHexString());
+                }
+
+            });
+            info->deleteLater();
         });
-        info->deleteLater();
-    });
+    }
+    else
+    {
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
+                [=](const auto state){if(state){this->eventMonitor(condition);}});
+    }
 
 }
 void BoutMonitor::folloup(QString outid)
 {
-    auto resp=connection_->mqtt_client->get_outputs_outputId(outid);
-    QObject::connect(resp,&ResponseMqtt::returned,this,[=](QJsonValue data)
-    {
-        const auto node_outputs_=Node_output(data);
-        emit outputChanged(node_outputs_);
-        if(node_outputs_.metadata().is_spent_)resp->deleteLater();
-    });
-}
-void BoutMonitor::recheck(bool fromEpoch)
-{
-    static qint64 cday=(fromEpoch)?0:QDateTime::currentSecsSinceEpoch();
 
-    auto info=connection_->rest_client->get_api_core_v2_info();
+    if(Node_Conection::rest_client->Connected)
+    {
+        auto resp=Node_Conection::mqtt_client->get_outputs_outputId(outid);
+        QObject::connect(resp,&ResponseMqtt::returned,reciever,[=](QJsonValue data)
+        {
+            const auto node_outputs_=Node_output(data);
+            emit outputChanged(node_outputs_);
+            if(node_outputs_.metadata().is_spent_)resp->deleteLater();
+        });
+    }
+    else
+    {
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
+                [=](const auto state){if(state){this->folloup(outid);}});
+    }
+
+}
+void BoutMonitor::recheck()
+{
+    auto info=Node_Conection::rest_client->get_api_core_v2_info();
+    const auto time=createdAfter_;
     QObject::connect(info,&Node_info::finished,this,[=]( ){
 
         auto node_outputs_=new Node_outputs();
-        auto strfilter=((sender_.isNull())?"":"sender="+qencoding::qbech32::Iota::encode(info->bech32Hrp,sender_)+"&")+
+        auto strfilter=
+                ((sender_.isNull())?"":"sender="+qencoding::qbech32::Iota::encode(info->bech32Hrp,sender_)+"&")+
                 ((issuer_.isNull())?"":"issuer_="+qencoding::qbech32::Iota::encode(info->bech32Hrp,issuer_)+"&")+
-                ((addr_.isNull())?"":"address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_)+"&") +((tag_.isNull())?"":"tag="+tag_.toHexString() + "&createdAfter="
-                                                                              +QString::number(cday));
+                ((addr_.isNull())?"":"address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_)+"&") +
+                ((tag_.isNull())?"":"tag="+tag_.toHexString()+"&")+
+                ((time.isNull())?"":"createdAfter=" +QString::number(time.toSecsSinceEpoch()));
+
+        qDebug()<<"BoutMonitor::recheck::strfilter:"<<strfilter;
         switch(outtypes_) {
         case Basic:
-            connection_->rest_client->get_basic_outputs(node_outputs_,strfilter);
+            Node_Conection::rest_client->get_basic_outputs(node_outputs_,strfilter);
+             break;
         case NFT:
-            connection_->rest_client->get_nft_outputs(node_outputs_,strfilter);
+            Node_Conection::rest_client->get_nft_outputs(node_outputs_,strfilter);
+             break;
         }
 
-        QObject::connect(node_outputs_,&Node_outputs::finished,this,[=]( ){
+        QObject::connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
             for(const auto& v:node_outputs_->outs_)
             {
+                qDebug()<<"BoutMonitor::recheck::gotNewBout"<<strfilter;
                 emit gotNewBout(v);
                 folloup(v.metadata().outputid_.toHexString());
 
@@ -73,49 +97,69 @@ void BoutMonitor::recheck(bool fromEpoch)
         });
         info->deleteLater();
     });
-
+    createdAfter_=QDateTime::currentDateTime();
 }
 void BoutMonitor::addressMonitor()
 {
-    auto info=connection_->rest_client->get_api_core_v2_info();
-    QObject::connect(info,&Node_info::finished,this,[=]( ){
+    if(Node_Conection::rest_client->Connected)
+    {
+        auto info=Node_Conection::rest_client->get_api_core_v2_info();
+        QObject::connect(info,&Node_info::finished,this,[=]( ){
 
-        auto node_outputs_=new Node_outputs();
-        auto strfilter="address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_);
-        switch(outtypes_){
-        case Basic:
-            connection_->rest_client->get_basic_outputs(node_outputs_,strfilter);
-        case NFT:
-            connection_->rest_client->get_nft_outputs(node_outputs_,strfilter);
-        }
-
-        QObject::connect(node_outputs_,&Node_outputs::finished,this,[=]( ){
-            for(const auto& v:node_outputs_->outs_)
-            {
-                emit gotNewBout(v);
-                folloup(v.metadata().outputid_.toHexString());
-
+            auto node_outputs_=new Node_outputs();
+            auto strfilter="address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_);
+            qDebug()<<"objectname:"<<this->objectName();
+            qDebug()<<"BoutMonitor::addressMonitor():strfilter:"<<strfilter;
+            qDebug()<<"BoutMonitor::addressMonitor():outtypes_:"<<outtypes_;
+            switch(outtypes_){
+            case Basic:
+                Node_Conection::rest_client->get_basic_outputs(node_outputs_,strfilter);
+            case NFT:
+                Node_Conection::rest_client->get_nft_outputs(node_outputs_,strfilter);
             }
 
-            node_outputs_->deleteLater();
-            eventMonitor();
-        });
-        info->deleteLater();
-    });
+            QObject::connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
+                for(const auto& v:node_outputs_->outs_)
+                {
+                    qDebug()<<"BoutMonitor::addressMonitor():gotNewBout";
+                    qDebug()<<"objectname:"<<this->objectName();
+                    emit gotNewBout(v);
+                    folloup(v.metadata().outputid_.toHexString());
+                }
 
-}
-void BoutMonitor::restMonitor(bool fromEpoch)
-{
-    recheck(fromEpoch);
-    if(rpeat_)
-    {
-        connect(&monitorTimer,&QTimer::timeout,this,[=]()
-        {
-                this->recheck(false);
+                node_outputs_->deleteLater();
+                eventMonitor();
+            });
+            info->deleteLater();
         });
-        monitorTimer.start(rpeat_);
+    }
+    else
+    {
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
+                [=](const auto state){if(state){this->addressMonitor();}});
     }
 
+}
+void BoutMonitor::restMonitor()
+{
+    qDebug()<<"BoutMonitor::restMonitor:"<<tag_;
+    if(Node_Conection::rest_client->Connected)
+    {
+        recheck();
+        if(rpeat_)
+        {
+            connect(&monitorTimer,&QTimer::timeout,this,[=]()
+            {
+                this->recheck();
+            });
+            monitorTimer.start(rpeat_);
+        }
+    }
+    else
+    {
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
+                [=](const auto state){if(state){this->restMonitor();}});
+    }
 }
 
 void BoutMonitor::set_tag(const QString tag_m)
@@ -176,4 +220,12 @@ QString BoutMonitor::issuer(void)const
 QString BoutMonitor::tag(void)const
 {
     return QString(tag_);
+}
+void BoutMonitor::restart(void)
+{
+    qDebug()<<"BoutMonitor::restart";
+    reciever->deleteLater();
+    emit restarted();
+    reciever=new BoutMonitor(this);
+    qDebug()<<"BoutMonitor::restartend";
 }
