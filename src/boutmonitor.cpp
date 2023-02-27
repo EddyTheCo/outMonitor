@@ -226,6 +226,6 @@ void BoutMonitor::restart(void)
     qDebug()<<"BoutMonitor::restart";
     reciever->deleteLater();
     emit restarted();
-    reciever=new BoutMonitor(this);
+    reciever=new QObject(this);
     qDebug()<<"BoutMonitor::restartend";
 }
