@@ -5,10 +5,10 @@
 
 using namespace qiota;
 
-BoutMonitor::BoutMonitor(QObject *parent):outtypes_(Basic),rpeat_(0),
+BoutMonitor::BoutMonitor(QObject *parent):QObject(parent),outtypes_(Basic),rpeat_(0),
     reciever(new QObject(this))
 {
-    this->setParent(parent);
+
 }
 
 void BoutMonitor::eventMonitor(QString condition)
@@ -33,11 +33,7 @@ void BoutMonitor::eventMonitor(QString condition)
             info->deleteLater();
         });
     }
-    else
-    {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,reciever,
-                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->eventMonitor(condition);}});
-    }
+
 
 }
 void BoutMonitor::folloup(QString outid)
@@ -53,11 +49,7 @@ void BoutMonitor::folloup(QString outid)
             if(node_outputs_.metadata().is_spent_)resp->deleteLater();
         });
     }
-    else
-    {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,reciever,
-                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->folloup(outid);}});
-    }
+
 
 }
 void BoutMonitor::recheck()
@@ -74,7 +66,7 @@ void BoutMonitor::recheck()
                 ((tag_.isNull())?"":"tag="+tag_.toHexString()+"&")+
                 ((time.isNull())?"":"createdAfter=" +QString::number(time.toSecsSinceEpoch()));
 
-        qDebug()<<"BoutMonitor::recheck::strfilter:"<<strfilter;
+
         switch(outtypes_) {
         case Basic:
             Node_Conection::rest_client->get_basic_outputs(node_outputs_,strfilter);
@@ -100,6 +92,7 @@ void BoutMonitor::recheck()
 }
 void BoutMonitor::addressMonitor()
 {
+
     if(Node_Conection::state()==Node_Conection::Connected)
     {
         auto info=Node_Conection::rest_client->get_api_core_v2_info();
@@ -107,6 +100,7 @@ void BoutMonitor::addressMonitor()
 
             auto node_outputs_=new Node_outputs();
             auto strfilter="address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_);
+
             switch(outtypes_){
             case Basic:
                 Node_Conection::rest_client->get_basic_outputs(node_outputs_,strfilter);
@@ -127,11 +121,7 @@ void BoutMonitor::addressMonitor()
             info->deleteLater();
         });
     }
-    else
-    {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->addressMonitor();}});
-    }
+
 
 }
 void BoutMonitor::restMonitor()
@@ -149,11 +139,7 @@ void BoutMonitor::restMonitor()
             monitorTimer.start(rpeat_);
         }
     }
-    else
-    {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->restMonitor();}});
-    }
+
 }
 
 void BoutMonitor::set_tag(const QString tag_m)
@@ -217,9 +203,7 @@ QString BoutMonitor::tag(void)const
 }
 void BoutMonitor::restart(void)
 {
-    qDebug()<<"BoutMonitor::restart";
     reciever->deleteLater();
     emit restarted();
     reciever=new QObject(this);
-    qDebug()<<"BoutMonitor::restartend";
 }
