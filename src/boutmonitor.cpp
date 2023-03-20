@@ -14,10 +14,10 @@ BoutMonitor::BoutMonitor(QObject *parent):outtypes_(Basic),rpeat_(0),
 void BoutMonitor::eventMonitor(QString condition)
 {
 
-    if(Node_Conection::rest_client->Connected)
+    if(Node_Conection::state()==Node_Conection::Connected)
     {
         auto info=Node_Conection::rest_client->get_api_core_v2_info();
-        QObject::connect(info,&Node_info::finished,this,[=]( ){
+        QObject::connect(info,&Node_info::finished,reciever,[=]( ){
 
             auto resp=Node_Conection::mqtt_client->
                     get_outputs_unlock_condition_address(condition+"/"+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_));
@@ -35,15 +35,15 @@ void BoutMonitor::eventMonitor(QString condition)
     }
     else
     {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](const auto state){if(state){this->eventMonitor(condition);}});
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,reciever,
+                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->eventMonitor(condition);}});
     }
 
 }
 void BoutMonitor::folloup(QString outid)
 {
 
-    if(Node_Conection::rest_client->Connected)
+    if(Node_Conection::state()==Node_Conection::Connected)
     {
         auto resp=Node_Conection::mqtt_client->get_outputs_outputId(outid);
         QObject::connect(resp,&ResponseMqtt::returned,reciever,[=](QJsonValue data)
@@ -55,8 +55,8 @@ void BoutMonitor::folloup(QString outid)
     }
     else
     {
-        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](const auto state){if(state){this->folloup(outid);}});
+        connect(Node_Conection::rest_client,&qiota::Client::stateChanged,reciever,
+                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->folloup(outid);}});
     }
 
 }
@@ -87,7 +87,6 @@ void BoutMonitor::recheck()
         QObject::connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
             for(const auto& v:node_outputs_->outs_)
             {
-                qDebug()<<"BoutMonitor::recheck::gotNewBout"<<strfilter;
                 emit gotNewBout(v);
                 folloup(v.metadata().outputid_.toHexString());
 
@@ -101,16 +100,13 @@ void BoutMonitor::recheck()
 }
 void BoutMonitor::addressMonitor()
 {
-    if(Node_Conection::rest_client->Connected)
+    if(Node_Conection::state()==Node_Conection::Connected)
     {
         auto info=Node_Conection::rest_client->get_api_core_v2_info();
-        QObject::connect(info,&Node_info::finished,this,[=]( ){
+        QObject::connect(info,&Node_info::finished,reciever,[=]( ){
 
             auto node_outputs_=new Node_outputs();
             auto strfilter="address="+qencoding::qbech32::Iota::encode(info->bech32Hrp,addr_);
-            qDebug()<<"objectname:"<<this->objectName();
-            qDebug()<<"BoutMonitor::addressMonitor():strfilter:"<<strfilter;
-            qDebug()<<"BoutMonitor::addressMonitor():outtypes_:"<<outtypes_;
             switch(outtypes_){
             case Basic:
                 Node_Conection::rest_client->get_basic_outputs(node_outputs_,strfilter);
@@ -121,8 +117,6 @@ void BoutMonitor::addressMonitor()
             QObject::connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
                 for(const auto& v:node_outputs_->outs_)
                 {
-                    qDebug()<<"BoutMonitor::addressMonitor():gotNewBout";
-                    qDebug()<<"objectname:"<<this->objectName();
                     emit gotNewBout(v);
                     folloup(v.metadata().outputid_.toHexString());
                 }
@@ -136,14 +130,14 @@ void BoutMonitor::addressMonitor()
     else
     {
         connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](const auto state){if(state){this->addressMonitor();}});
+                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->addressMonitor();}});
     }
 
 }
 void BoutMonitor::restMonitor()
 {
-    qDebug()<<"BoutMonitor::restMonitor:"<<tag_;
-    if(Node_Conection::rest_client->Connected)
+
+    if(Node_Conection::state()==Node_Conection::Connected)
     {
         recheck();
         if(rpeat_)
@@ -158,7 +152,7 @@ void BoutMonitor::restMonitor()
     else
     {
         connect(Node_Conection::rest_client,&qiota::Client::stateChanged,this,
-                [=](const auto state){if(state){this->restMonitor();}});
+                [=](){if(Node_Conection::state()==Node_Conection::Connected){this->restMonitor();}});
     }
 }
 
