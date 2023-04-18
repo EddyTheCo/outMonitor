@@ -5,12 +5,12 @@
 
 using namespace qiota;
 
-outMonitor::outMonitor(QObject *parent):QObject(parent),reciever(new QObject(this))
+OutMonitor::OutMonitor(QObject *parent):QObject(parent),reciever(new QObject(this))
 {
 
 }
 
-void outMonitor::subscribe(QString topic)
+void OutMonitor::subscribe(QString topic)
 {
     if(Node_Conection::state()==Node_Conection::Connected)
     {
@@ -24,7 +24,7 @@ void outMonitor::subscribe(QString topic)
 
 }
 
-QJsonArray outMonitor::add_json(const std::vector<qiota::Node_output>& outs)const
+QJsonArray OutMonitor::add_json(const std::vector<qiota::Node_output>& outs)const
 {
     QJsonArray outsArray_;
     for(const auto& v:outs)
@@ -33,7 +33,7 @@ QJsonArray outMonitor::add_json(const std::vector<qiota::Node_output>& outs)cons
     }
     return outsArray_;
 }
-void outMonitor::restart(void)
+void OutMonitor::restart(void)
 {
     reciever->deleteLater();
     emit restarted();

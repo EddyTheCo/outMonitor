@@ -11,13 +11,13 @@
 using namespace qiota::qblocks;
 using namespace qiota;
 
-class outMonitor : public QObject
+class OutMonitor : public QObject
 {
     Q_OBJECT
     QML_ELEMENT
 
 public:
-    outMonitor(QObject *parent = nullptr);
+    OutMonitor(QObject *parent = nullptr);
 
     template<Output::types outtype>
     void getRestOuts(QString filter)
