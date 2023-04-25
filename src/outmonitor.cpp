@@ -9,7 +9,15 @@ OutMonitor::OutMonitor(QObject *parent):QObject(parent),reciever(new QObject(thi
 {
 
 }
+void OutMonitor::setMinDeposit(std::shared_ptr<Output> out)
+{
 
+    auto  info=Node_Conection::rest_client->get_api_core_v2_info();
+    QObject::connect(info,&Node_info::finished,Node_Conection::rest_client,[=]( ){
+        out->amount_=Client::get_deposit(out,info);
+        info->deleteLater();
+    });
+}
 void OutMonitor::subscribe(QString topic)
 {
     if(Node_Conection::state()==Node_Conection::Connected)

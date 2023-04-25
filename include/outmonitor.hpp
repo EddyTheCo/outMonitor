@@ -42,7 +42,7 @@ public:
     Q_INVOKABLE void getRestAliasOuts(QString filter){getRestOuts<Output::Alias_typ>(filter);};
     Q_INVOKABLE void subscribe(QString topic);
     Q_INVOKABLE void restart(void);
-
+    Q_INVOKABLE static void setMinDeposit(std::shared_ptr<Output>);
 
 signals:
     void gotNewOuts(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
