@@ -24,10 +24,13 @@ public:
     {
         if(Node_Conection::state()==Node_Conection::Connected)
         {
+
             auto node_outputs_=new Node_outputs(reciever);
 
+
             connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
-                emit gotNewOuts(node_outputs_->outs_,add_json(node_outputs_->outs_));
+
+                if(node_outputs_->outs_.size())emit gotNewOuts(node_outputs_->outs_,add_json(node_outputs_->outs_));
                 node_outputs_->deleteLater();
             });
 
