@@ -5,18 +5,9 @@
 
 using namespace qiota;
 
-OutMonitor::OutMonitor(QObject *parent):QObject(parent),reciever(new QObject(this))
+OutMonitor::OutMonitor(QObject *parent):QObject(parent),reciever(new QObject(this)),restcalls(1),numcalls(0)
 {
 
-}
-void OutMonitor::setMinDeposit(std::shared_ptr<Output> out)
-{
-
-    auto  info=Node_Conection::rest_client->get_api_core_v2_info();
-    QObject::connect(info,&Node_info::finished,Node_Conection::rest_client,[=]( ){
-        out->amount_=Client::get_deposit(out,info);
-        info->deleteLater();
-    });
 }
 void OutMonitor::subscribe(QString topic)
 {
@@ -44,6 +35,10 @@ QJsonArray OutMonitor::add_json(const std::vector<qiota::Node_output>& outs)cons
 void OutMonitor::restart(void)
 {
     reciever->deleteLater();
+    outs.clear();
+    jsonOuts=QJsonArray();
+    restcalls=1;
+    numcalls=0;
     emit restarted();
     reciever=new QObject(this);
 }

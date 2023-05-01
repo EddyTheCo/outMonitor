@@ -29,8 +29,26 @@ public:
 
 
             connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
+                numcalls++;
+                const auto var=add_json(node_outputs_->outs_);
 
-                if(node_outputs_->outs_.size())emit gotNewOuts(node_outputs_->outs_,add_json(node_outputs_->outs_));
+                const auto vec=node_outputs_->outs_;
+                if(node_outputs_->outs_.size())emit gotNewOuts(vec,var);
+                for(const auto&v:vec)
+                {
+                    outs.push_back(v);
+                }
+
+                for(const auto& v:var)
+                {
+                    jsonOuts.append(v);
+                }
+                if(numcalls==restcalls)
+                {
+                    emit finished(outs,jsonOuts);
+                    restart();
+                }
+
                 node_outputs_->deleteLater();
             });
 
@@ -45,14 +63,18 @@ public:
     Q_INVOKABLE void getRestAliasOuts(QString filter){getRestOuts<Output::Alias_typ>(filter);};
     Q_INVOKABLE void subscribe(QString topic);
     Q_INVOKABLE void restart(void);
-    Q_INVOKABLE static void setMinDeposit(std::shared_ptr<Output>);
+    Q_INVOKABLE void setRestCalls(int calls){restcalls=calls;}
 
 signals:
     void gotNewOuts(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
+    void finished(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
     void restarted();
 
 private:
     QJsonArray add_json(const std::vector<qiota::Node_output>&  outs) const;
     QObject * reciever;
+    int restcalls, numcalls;
+    std::vector<qiota::Node_output>  outs;
+    QJsonArray jsonOuts;
 
 };
