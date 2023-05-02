@@ -46,7 +46,6 @@ public:
                 if(numcalls==restcalls)
                 {
                     emit finished(outs,jsonOuts);
-                    restart();
                 }
 
                 node_outputs_->deleteLater();
