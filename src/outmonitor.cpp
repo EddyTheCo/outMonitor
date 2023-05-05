@@ -39,6 +39,7 @@ void OutMonitor::restart(void)
     jsonOuts=QJsonArray();
     restcalls=1;
     numcalls=0;
-    emit restarted();
     reciever=new QObject(this);
+    emit restarted();
+
 }
