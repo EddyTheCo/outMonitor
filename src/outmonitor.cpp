@@ -17,7 +17,7 @@ void OutMonitor::subscribe(QString topic)
         connect(resp,&ResponseMqtt::returned,reciever,[=](QJsonValue data){
             const auto node_output=Node_output(data);
             add_json({node_output});
-            emit gotNewOuts({node_output},add_json({node_output}));
+            emit gotNewOutsMqtt({node_output},add_json({node_output}));
         });
     }
 

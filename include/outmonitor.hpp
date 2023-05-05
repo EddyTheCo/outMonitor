@@ -31,7 +31,6 @@ public:
             connect(node_outputs_,&Node_outputs::finished,reciever,[=]( ){
                 numcalls++;
                 const auto var=add_json(node_outputs_->outs_);
-
                 const auto vec=node_outputs_->outs_;
                 if(node_outputs_->outs_.size())emit gotNewOuts(vec,var);
                 for(const auto&v:vec)
@@ -46,6 +45,7 @@ public:
                 if(numcalls==restcalls)
                 {
                     emit finished(outs,jsonOuts);
+                    numcalls=0;
                 }
 
                 node_outputs_->deleteLater();
@@ -66,6 +66,7 @@ public:
 
 signals:
     void gotNewOuts(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
+    void gotNewOutsMqtt(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
     void finished(std::vector<qiota::Node_output>  outs,QJsonArray jsonOuts);
     void restarted();
 
