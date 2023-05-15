@@ -39,7 +39,7 @@ FetchContent_MakeAvailable(nodeConection)
 FetchContent_Declare(
         qbech32
         GIT_REPOSITORY git@github.com:EddyTheCo/Qbech32.git
-        GIT_TAG main
+        GIT_TAG v0.0.1
         )
 FetchContent_MakeAvailable(qbech32)
 
