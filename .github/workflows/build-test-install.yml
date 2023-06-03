@@ -14,6 +14,7 @@ jobs:
       matrix:
         os: [ubuntu-latest,macos-latest,windows-latest]
         sharedLib: [true,false]
+        useThread: [true,false]
 
     uses: EddyTheCo/Common/.github/workflows/build-test-install.yml@main
     permissions:
@@ -21,4 +22,5 @@ jobs:
     with:
       os: ${{ matrix.os }}
       sharedLib: ${{ matrix.sharedLib }}
+      useThread: ${{ matrix.useThread }}
       qtModules: 'qtwebsockets qtshadertools'  
