@@ -1,83 +1,110 @@
 cmake_minimum_required(VERSION 3.16)
-project(IOTA VERSION 0.1 LANGUAGES CXX)
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-find_package(Qt6 REQUIRED COMPONENTS Core Gui Quick)
-
-qt6_add_qml_module(outMonitor
-    URI  outMonitor
-    VERSION 1.0
-    SOURCES
-    src/outmonitor.cpp include/outmonitor.hpp
-    RESOURCE_PREFIX
-   "/esterVtech.com/imports"
-    OUTPUT_TARGETS out_targets_var
-    NO_IMPORT_SCAN
-    IMPORTS nodeConection
-    IMPORT_PATH
-    ${CMAKE_BINARY_DIR}/_deps/nodeconection-build
-    OUTPUT_DIRECTORY
-    ${CMAKE_CURRENT_BINARY_DIR}/outMonitor
-)
-
-target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
-
-target_include_directories(outMonitor PUBLIC  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        "$<INSTALL_INTERFACE:include>")
 
 include(FetchContent)
-
 FetchContent_Declare(
-    nodeConection
-    GIT_REPOSITORY git@github.com:EddyTheCo/ConectionSettings.git
-    GIT_TAG main
-)
-FetchContent_MakeAvailable(nodeConection)
+	ccommon
+	GIT_REPOSITORY https://github.com/EddyTheCo/Common.git
+	GIT_TAG main
+	)
+FetchContent_MakeAvailable(ccommon)
+version_from_git(
+	LOG       OFF
+	TIMESTAMP "%Y%m%d%H%M%S"
+	)
+project(IOTAQml VERSION ${VERSION} LANGUAGES CXX)
 
-FetchContent_Declare(
-        qbech32
-        GIT_REPOSITORY git@github.com:EddyTheCo/Qbech32.git
-        GIT_TAG v0.0.1
-        )
-FetchContent_MakeAvailable(qbech32)
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+include(GNUInstallDirs)
 
 
-target_link_libraries(outMonitor PUBLIC nodeConection)
-target_link_libraries(outMonitor PRIVATE qbech32)
+find_package(Qt6 REQUIRED Core Gui Quick)
 
-target_compile_definitions(outMonitor
-    PRIVATE $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:QT_QML_DEBUG>)
+if (Qt6_FOUND)
+	qt_standard_project_setup()
+	qt6_add_qml_module(outMonitor
+		URI  outMonitor
+		VERSION 1.0
+		SOURCES
+		src/outmonitor.cpp include/outmonitor.hpp
+		RESOURCE_PREFIX
+		"/esterVtech.com/imports"
+		OUTPUT_TARGETS out_targets_var
+		OUTPUT_DIRECTORY
+		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
+		)
 
-install(TARGETS outMonitor ${out_targets_var} EXPORT outMonitorTargets DESTINATION bin )
-install(DIRECTORY include/ DESTINATION include/)
+	target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
 
-install(EXPORT outMonitorTargets
-    FILE outMonitorTargets.cmake
-    DESTINATION lib/cmake/outMonitor
-)
-include(CMakePackageConfigHelpers)
-# generate the config file that is includes the exports
-configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
-    "${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake"
-    INSTALL_DESTINATION "lib/cmake/outMonitor"
-    NO_SET_AND_CHECK_MACRO
-    NO_CHECK_REQUIRED_COMPONENTS_MACRO
-)
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake"
-    VERSION "0.1.1.0"
-    COMPATIBILITY AnyNewerVersion
-)
-install(FILES
-    ${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake
-    ${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake
-    DESTINATION lib/cmake/outMonitor
-)
-export(EXPORT outMonitorTargets
-    FILE "${CMAKE_CURRENT_BINARY_DIR}/outMonitorTargets.cmake"
-)
-list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/qml ${CMAKE_CURRENT_BINARY_DIR}/)
-set(QML_IMPORT_PATH ${QML_IMPORT_PATH}  CACHE STRING "" FORCE)
 
+
+	FetchContent_Declare(
+		nodeConection
+		GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
+		GIT_TAG v0.0.1
+		FIND_PACKAGE_ARGS 0 CONFIG
+		)
+	FetchContent_MakeAvailable(nodeConection)
+
+	FetchContent_Declare(
+		qbech32
+		GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
+		GIT_TAG v0.0.1
+		FIND_PACKAGE_ARGS 0 CONFIG
+		)
+	FetchContent_MakeAvailable(qbech32)
+
+
+	target_link_libraries(outMonitor PUBLIC nodeConection)
+	target_link_libraries(outMonitor PRIVATE qbech32)
+
+
+	target_include_directories(outMonitor PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/outMonitor>")
+
+	install(TARGETS outMonitor ${out_targets_var}
+		EXPORT outMonitorTargets
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}
+		)
+	install(DIRECTORY ${CMAKE_CURRENT_LIST_DIR}/include/
+		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/outMonitor
+		)
+
+
+	install(EXPORT outMonitorTargets
+		FILE outMonitorTargets.cmake
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		)
+	include(CMakePackageConfigHelpers)
+	configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+		"${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake"
+		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		NO_SET_AND_CHECK_MACRO
+		NO_CHECK_REQUIRED_COMPONENTS_MACRO
+		)
+	write_basic_package_version_file(
+		"${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake"
+		VERSION ${VERSION}
+		COMPATIBILITY SameMajorVersion
+		)
+	install(FILES
+		${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake
+		${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		)
+	export(EXPORT outMonitorTargets
+		FILE "${CMAKE_CURRENT_BINARY_DIR}/outMonitorTargets.cmake"
+		)
+	if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+		include(CTest)
+		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${SEMVER}-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_CXX_COMPILER_ID}")
+		if(NOT BUILD_SHARED_LIBS)
+			set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}-static")
+		endif(NOT BUILD_SHARED_LIBS)
+		include(CPack)
+	endif()
+
+endif(Qt6_FOUND)
