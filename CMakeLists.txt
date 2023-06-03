@@ -21,7 +21,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
 
-find_package(Qt6 REQUIRED Core Gui Quick)
+find_package(Qt6 Core Gui Quick)
 
 if (Qt6_FOUND)
 	qt_standard_project_setup()
@@ -30,8 +30,6 @@ if (Qt6_FOUND)
 		VERSION 1.0
 		SOURCES
 		src/outmonitor.cpp include/outmonitor.hpp
-		RESOURCE_PREFIX
-		"/esterVtech.com/imports"
 		OUTPUT_TARGETS out_targets_var
 		OUTPUT_DIRECTORY
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
@@ -106,5 +104,9 @@ if (Qt6_FOUND)
 		endif(NOT BUILD_SHARED_LIBS)
 		include(CPack)
 	endif()
-
 endif(Qt6_FOUND)
+
+if(BUILD_DOCS)
+	get_target_property(build_docs cmake_build_docs SOURCES)
+	include(${build_docs})
+endif()
