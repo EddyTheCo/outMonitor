@@ -20,41 +20,46 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
+FetchContent_Declare(
+	nodeConection
+	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
+	GIT_TAG v0.0.1
+	FIND_PACKAGE_ARGS 0 CONFIG
+	)
+FetchContent_MakeAvailable(nodeConection)
+
+FetchContent_Declare(
+	qbech32
+	GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
+	GIT_TAG v0.0.1
+	FIND_PACKAGE_ARGS 0 CONFIG
+	)
+FetchContent_MakeAvailable(qbech32)
+
+
 
 find_package(Qt6 COMPONENTS Core Gui Quick)
 
 if (Qt6_FOUND)
 	qt_standard_project_setup()
+	set(MODULE_BUILD SHARED)
+	if(NOT BUILD_SHARED_LIBS)
+		set(MODULE_BUILD STATIC)
+	endif(NOT BUILD_SHARED_LIBS)
 	qt6_add_qml_module(outMonitor
 		URI  outMonitor
 		VERSION 1.0
+		${MODULE_BUILD}
 		SOURCES
 		src/outmonitor.cpp include/outmonitor.hpp
 		OUTPUT_TARGETS out_targets_var
+		RESOURCE_PREFIX
+		"/esterVtech.com/imports"
 		OUTPUT_DIRECTORY
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
 		)
 
 	target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
-
-
-
-	FetchContent_Declare(
-		nodeConection
-		GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-		GIT_TAG v0.0.1
-		FIND_PACKAGE_ARGS 0 CONFIG
-		)
-	FetchContent_MakeAvailable(nodeConection)
-
-	FetchContent_Declare(
-		qbech32
-		GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
-		GIT_TAG v0.0.1
-		FIND_PACKAGE_ARGS 0 CONFIG
-		)
-	FetchContent_MakeAvailable(qbech32)
-
 
 	target_link_libraries(outMonitor PUBLIC nodeConection)
 	target_link_libraries(outMonitor PRIVATE qbech32)
@@ -110,3 +115,7 @@ if(BUILD_DOCS)
 	get_target_property(build_docs cmake_build_docs SOURCES)
 	include(${build_docs})
 endif()
+
+list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/qml ${CMAKE_CURRENT_BINARY_DIR}/)
+list(REMOVE_DUPLICATES QML_IMPORT_PATH)
+set(QML_IMPORT_PATH ${QML_IMPORT_PATH} CACHE STRING "" FORCE)
