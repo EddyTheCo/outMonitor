@@ -21,7 +21,7 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
 
-find_package(Qt6 Core Gui Quick)
+find_package(Qt6 COMPONENTS Core Gui Quick)
 
 if (Qt6_FOUND)
 	qt_standard_project_setup()
