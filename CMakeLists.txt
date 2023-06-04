@@ -42,14 +42,9 @@ find_package(Qt6 COMPONENTS Core Gui Quick)
 
 if (Qt6_FOUND)
 	qt_standard_project_setup()
-	set(MODULE_BUILD SHARED)
-	if(NOT BUILD_SHARED_LIBS)
-		set(MODULE_BUILD STATIC)
-	endif(NOT BUILD_SHARED_LIBS)
 	qt6_add_qml_module(outMonitor
 		URI  outMonitor
 		VERSION 1.0
-		${MODULE_BUILD}
 		SOURCES
 		src/outmonitor.cpp include/outmonitor.hpp
 		OUTPUT_TARGETS out_targets_var
