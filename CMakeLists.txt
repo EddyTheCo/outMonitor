@@ -20,6 +20,23 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 include(GNUInstallDirs)
 
+FetchContent_Declare(
+	nodeConection
+	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
+	GIT_TAG v0.1.3
+	FIND_PACKAGE_ARGS 0 CONFIG
+	)
+FetchContent_MakeAvailable(nodeConection)
+
+FetchContent_Declare(
+	qbech32
+	GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
+	GIT_TAG v0.0.1
+	FIND_PACKAGE_ARGS 0 CONFIG
+	)
+FetchContent_MakeAvailable(qbech32)
+
+
 
 find_package(Qt6 COMPONENTS Core Gui Quick)
 
@@ -31,30 +48,14 @@ if (Qt6_FOUND)
 		SOURCES
 		src/outmonitor.cpp include/outmonitor.hpp
 		OUTPUT_TARGETS out_targets_var
+		RESOURCE_PREFIX
+		"/esterVtech.com/imports"
 		OUTPUT_DIRECTORY
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
 		)
 
+	target_compile_definitions(outMonitor PRIVATE WINDOWS_OMONI)
 	target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
-
-
-
-	FetchContent_Declare(
-		nodeConection
-		GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-		GIT_TAG v0.0.1
-		FIND_PACKAGE_ARGS 0 CONFIG
-		)
-	FetchContent_MakeAvailable(nodeConection)
-
-	FetchContent_Declare(
-		qbech32
-		GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
-		GIT_TAG v0.0.1
-		FIND_PACKAGE_ARGS 0 CONFIG
-		)
-	FetchContent_MakeAvailable(qbech32)
-
 
 	target_link_libraries(outMonitor PUBLIC nodeConection)
 	target_link_libraries(outMonitor PRIVATE qbech32)
@@ -99,9 +100,9 @@ if (Qt6_FOUND)
 	if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 		include(CTest)
 		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${SEMVER}-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_CXX_COMPILER_ID}")
-		if(NOT BUILD_SHARED_LIBS)
-			set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}-static")
-		endif(NOT BUILD_SHARED_LIBS)
+		if(USE_THREADS)
+			set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_FILE_NAME}-MThread")
+		endif(USE_THREADS)
 		include(CPack)
 	endif()
 endif(Qt6_FOUND)
@@ -110,3 +111,7 @@ if(BUILD_DOCS)
 	get_target_property(build_docs cmake_build_docs SOURCES)
 	include(${build_docs})
 endif()
+
+list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/qml ${CMAKE_CURRENT_BINARY_DIR}/)
+list(REMOVE_DUPLICATES QML_IMPORT_PATH)
+set(QML_IMPORT_PATH ${QML_IMPORT_PATH} CACHE STRING "" FORCE)
