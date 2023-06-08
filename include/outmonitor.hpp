@@ -7,11 +7,18 @@
 #include<QtQml/qqmlregistration.h>
 #include"nodeConnection.hpp"
 
+#include <QtCore/QtGlobal>
+
+#if defined(WINDOWS_OMONI)
+# define OMONI_EXPORT Q_DECL_EXPORT
+#else
+#define OMONI_EXPORT Q_DECL_IMPORT
+#endif
 
 using namespace qiota::qblocks;
 using namespace qiota;
 
-class OutMonitor : public QObject
+class OMONI_EXPORT OutMonitor : public QObject
 {
     Q_OBJECT
     QML_ELEMENT

@@ -23,7 +23,7 @@ include(GNUInstallDirs)
 FetchContent_Declare(
 	nodeConection
 	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-	GIT_TAG v0.0.1
+	GIT_TAG v0.1.2
 	FIND_PACKAGE_ARGS 0 CONFIG
 	)
 FetchContent_MakeAvailable(nodeConection)
@@ -54,6 +54,7 @@ if (Qt6_FOUND)
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
 		)
 
+	target_compile_definitions(outMonitor PRIVATE WINDOWS_OMONI)
 	target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
 
 	target_link_libraries(outMonitor PUBLIC nodeConection)
