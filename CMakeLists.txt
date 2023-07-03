@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.24)
 
 include(FetchContent)
 FetchContent_Declare(
@@ -50,6 +50,7 @@ if (Qt6_FOUND)
 		OUTPUT_TARGETS out_targets_var
 		RESOURCE_PREFIX
 		"/esterVtech.com/imports"
+		IMPORT_PATH ${QML_IMPORT_PATH}
 		OUTPUT_DIRECTORY
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
 		)
@@ -112,6 +113,6 @@ if(BUILD_DOCS)
 	include(${build_docs})
 endif()
 
-list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_SOURCE_DIR}/qml ${CMAKE_CURRENT_BINARY_DIR}/)
+list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_BINARY_DIR}/)
 list(REMOVE_DUPLICATES QML_IMPORT_PATH)
 set(QML_IMPORT_PATH ${QML_IMPORT_PATH} CACHE STRING "" FORCE)
