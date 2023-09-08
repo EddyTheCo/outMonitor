@@ -11,7 +11,7 @@ version_from_git(
 	LOG       OFF
 	TIMESTAMP "%Y%m%d%H%M%S"
 	)
-project(IOTAQml VERSION ${VERSION} LANGUAGES CXX)
+project(outMonitorQml VERSION ${VERSION} DESCRIPTION "Output Monitor QML module" LANGUAGES CXX)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(CMAKE_CXX_STANDARD 17)
@@ -53,6 +53,7 @@ if (Qt6_FOUND)
 		IMPORT_PATH ${QML_IMPORT_PATH}
 		OUTPUT_DIRECTORY
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
+		IMPORT_PATH ${QML_IMPORT_PATH}
 		)
 
 	target_compile_definitions(outMonitor PRIVATE WINDOWS_OMONI)
@@ -76,12 +77,12 @@ if (Qt6_FOUND)
 
 	install(EXPORT outMonitorTargets
 		FILE outMonitorTargets.cmake
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/outMonitor
 		)
 	include(CMakePackageConfigHelpers)
 	configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
 		"${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake"
-		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/outMonitor
 		NO_SET_AND_CHECK_MACRO
 		NO_CHECK_REQUIRED_COMPONENTS_MACRO
 		)
@@ -93,12 +94,13 @@ if (Qt6_FOUND)
 	install(FILES
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake
 		${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake
-		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/outMonitor
 		)
 	export(EXPORT outMonitorTargets
 		FILE "${CMAKE_CURRENT_BINARY_DIR}/outMonitorTargets.cmake"
 		)
 	if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+		set(CPACK_PACKAGE_CONTACT "estervtech")
 		include(CTest)
 		set(CPACK_PACKAGE_FILE_NAME "${PROJECT_NAME}-v${SEMVER}-${CMAKE_SYSTEM_NAME}_${CMAKE_SYSTEM_VERSION}-${CMAKE_SYSTEM_PROCESSOR}-${CMAKE_CXX_COMPILER_ID}")
 		if(USE_THREADS)
