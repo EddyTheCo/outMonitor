@@ -23,16 +23,16 @@ include(GNUInstallDirs)
 FetchContent_Declare(
 	nodeConection
 	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-	GIT_TAG v0.2.2
-	FIND_PACKAGE_ARGS 0 CONFIG
+	GIT_TAG v0.2.3
+	FIND_PACKAGE_ARGS 0.2 CONFIG
 	)
 FetchContent_MakeAvailable(nodeConection)
 
 FetchContent_Declare(
 	qbech32
 	GIT_REPOSITORY https://github.com/EddyTheCo/Qbech32.git
-	GIT_TAG v0.0.1
-	FIND_PACKAGE_ARGS 0 CONFIG
+	GIT_TAG v0.0.2
+	FIND_PACKAGE_ARGS 0.0 CONFIG
 	)
 FetchContent_MakeAvailable(qbech32)
 
@@ -83,8 +83,6 @@ if (Qt6_FOUND)
 	configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
 		"${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfig.cmake"
 		INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/outMonitor
-		NO_SET_AND_CHECK_MACRO
-		NO_CHECK_REQUIRED_COMPONENTS_MACRO
 		)
 	write_basic_package_version_file(
 		"${CMAKE_CURRENT_BINARY_DIR}/outMonitorConfigVersion.cmake"
