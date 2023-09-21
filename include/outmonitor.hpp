@@ -29,7 +29,7 @@ public:
     template<Output::types outtype>
     void getRestOuts(QString filter)
     {
-        if(Node_Conection::state()==Node_Conection::Connected)
+        if(Node_Conection::instance()->state()==Node_Conection::Connected)
         {
 
             auto node_outputs_=new Node_outputs(reciever);
@@ -58,7 +58,7 @@ public:
                 node_outputs_->deleteLater();
             });
 
-            Node_Conection::rest_client->get_outputs<outtype>(node_outputs_,filter);
+            Node_Conection::instance()->rest()->get_outputs<outtype>(node_outputs_,filter);
         }
 
     }

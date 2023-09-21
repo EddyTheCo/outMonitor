@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 
+include(${CMAKE_CURRENT_BINARY_DIR}/local_conf.cmake OPTIONAL)
+
 include(FetchContent)
 FetchContent_Declare(
 	ccommon
@@ -23,8 +25,8 @@ include(GNUInstallDirs)
 FetchContent_Declare(
 	nodeConection
 	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-	GIT_TAG v0.2.3
-	FIND_PACKAGE_ARGS 0.2 CONFIG
+	GIT_TAG v0.3.1
+	FIND_PACKAGE_ARGS 0.3 CONFIG
 	)
 FetchContent_MakeAvailable(nodeConection)
 

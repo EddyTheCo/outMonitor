@@ -11,9 +11,9 @@ OutMonitor::OutMonitor(QObject *parent):QObject(parent),reciever(new QObject(thi
 }
 void OutMonitor::subscribe(QString topic)
 {
-    if(Node_Conection::state()==Node_Conection::Connected)
+    if(Node_Conection::instance()->state()==Node_Conection::Connected)
     {
-        auto resp=Node_Conection::mqtt_client->get_subscription(topic);
+        auto resp=Node_Conection::instance()->mqtt()->get_subscription(topic);
         connect(resp,&ResponseMqtt::returned,reciever,[=](QJsonValue data){
             const auto node_output=Node_output(data);
             add_json({node_output});
