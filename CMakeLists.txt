@@ -25,8 +25,8 @@ include(GNUInstallDirs)
 FetchContent_Declare(
 	nodeConection
 	GIT_REPOSITORY https://github.com/EddyTheCo/ConectionSettings.git
-	GIT_TAG v0.3.1
-	FIND_PACKAGE_ARGS 0.3 CONFIG
+	GIT_TAG v0.4.1
+	FIND_PACKAGE_ARGS 0.4 CONFIG
 	)
 FetchContent_MakeAvailable(nodeConection)
 
@@ -52,23 +52,24 @@ if (Qt6_FOUND)
 		OUTPUT_TARGETS out_targets_var
 		RESOURCE_PREFIX
 		"/esterVtech.com/imports"
-		IMPORT_PATH ${QML_IMPORT_PATH}
 		OUTPUT_DIRECTORY
-		${CMAKE_CURRENT_BINARY_DIR}/outMonitor
-		IMPORT_PATH ${QML_IMPORT_PATH}
+		${CMAKE_BINARY_DIR}/outMonitor
+		IMPORT_PATH ${CMAKE_BINARY_DIR}
 		)
 
 	target_compile_definitions(outMonitor PRIVATE WINDOWS_OMONI)
 	target_link_libraries(outMonitor PUBLIC Qt6::Gui Qt6::Quick)
 
-	target_link_libraries(outMonitor PUBLIC nodeConection)
+	target_link_libraries(outMonitor PUBLIC nodeConection
+		$<$<STREQUAL:$<TARGET_PROPERTY:nodeConection,TYPE>,STATIC_LIBRARY>:nodeConectionplugin>
+		)
 	target_link_libraries(outMonitor PRIVATE qbech32)
 
 
 	target_include_directories(outMonitor PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 		"$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/outMonitor>")
 
-	install(TARGETS outMonitor ${out_targets_var}
+	install(TARGETS outMonitor outMonitorplugin ${out_targets_var}
 		EXPORT outMonitorTargets
 		DESTINATION ${CMAKE_INSTALL_LIBDIR}
 		)
@@ -76,6 +77,9 @@ if (Qt6_FOUND)
 		DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/outMonitor
 		)
 
+	install(DIRECTORY ${CMAKE_BINARY_DIR}/outMonitor/
+		DESTINATION ${CMAKE_INSTALL_LIBDIR}/QMLPlugins/outMonitor
+		)
 
 	install(EXPORT outMonitorTargets
 		FILE outMonitorTargets.cmake
@@ -115,6 +119,3 @@ if(BUILD_DOCS)
 	include(${build_docs})
 endif()
 
-list(APPEND QML_IMPORT_PATH ${CMAKE_CURRENT_BINARY_DIR}/)
-list(REMOVE_DUPLICATES QML_IMPORT_PATH)
-set(QML_IMPORT_PATH ${QML_IMPORT_PATH} CACHE STRING "" FORCE)
